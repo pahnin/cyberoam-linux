@@ -1,4 +1,23 @@
 #!/usr/bin/env python
+#
+#	Author of this software - phanindra srungavarapu <pahninsd@gmail.com> - phanindras.com
+#
+#	Cyberoam login client GUI for linux
+#	This is a free software distributed under GPL without any warrenty and support
+#	you can redistribute it and/or modify it
+#	under the terms of the GNU  General Public License as published
+#	by the Free Software Foundation, either version 3 of the License, or
+#	(at your option) any later version.
+#
+#	This software is distributed in the hope that it will be useful, but
+#	WITHOUT ANY WARRANTY; without esavingven the implied warranty of
+#	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+#	See the GNU General Public License for more details.
+#
+#	You should have received a copy of the GNU Lesser General Public License
+#	along with this program.  If not, see <http://www.gnu.org/licenses/#GPL>. 
+#
+
 import urllib, urllib2, os, sys, gobject
 from xml.dom.minidom import parseString
 import pygtk
@@ -21,14 +40,35 @@ class Cyberoam():
 		self.window = gtk.Window(gtk.WINDOW_TOPLEVEL)
 		self.window.connect("delete_event", self.gotoTray)
 		self.window.connect("destroy", self.destroy)
-		self.window.set_border_width(24)
+		#self.window.set_border_width(24)
 		self.window.set_size_request(400, 200)
 		self.window.set_title("Cyberoam client")
 		self.window.set_position(gtk.WIN_POS_CENTER_ALWAYS)
 		self.window.set_resizable(False)
 		
+		topwid=gtk.VBox(gtk.FALSE, 0)
+		
+				
+		mb = gtk.MenuBar()
+
+		appmenu = gtk.Menu()
+		app = gtk.MenuItem("App")
+		app.set_submenu(appmenu)
+
+		exit = gtk.MenuItem("Exit")
+		exit.connect("activate", self.destroy)
+		appmenu.append(exit)
+
+		mb.append(app)
+		vbox = gtk.VBox(False, 2)
+		vbox.pack_start(mb, False, False, 0)
+		topwid.pack_start(vbox)
+		
+		
+		
+		
 		table = gtk.Table(3, 3, True)
-		self.window.add(table)
+		topwid.pack_start(table)
 		
 		label = gtk.Label("Username")
 		table.attach(label,0,1,0,1)
@@ -52,31 +92,48 @@ class Cyberoam():
 		table.attach(self.button,1,3,2,3)
 		self.button.show()
 		
-		#table.set_row_spacing(0,30 )
+		#
 		
 		table.show()
+
+		
+		self.window.add(topwid)
+
+		topwid.show()
 		
 		self.statusicon = gtk.status_icon_new_from_stock(gtk.STOCK_NETWORK)
 		self.statusicon.connect('activate', self.status_clicked )
 		self.statusicon.set_name("Cyberoam")
 		
 		self.window.show_all()
+		self.winstatus='showing'
 		
 		gtk.main()
 	
 	
 	def gotoTray(self, widget, event, data=None):
 		self.window.hide_on_delete()
+		self.winstatus='hiding'
 		print "minimizing app to tray"
 		return True
 	
 	def destroy(self, widget, data=None):
+		if self.status=='login':
+			self.doLogout()
+		
 		gtk.main_quit()
 		sys.exit(0)
 		
 	def status_clicked(self,status):
-		print "Showing app"
-		self.window.show_all()
+		if self.winstatus == 'showing':
+			self.window.hide()
+			print "Hiding app"
+			self.winstatus='hiding'
+		else:
+			print "Showing app"
+			self.window.show_all()
+			self.winstatus='showing'
+		
 	
 	def conServer(self):
 		print "connecting to server"
